@@ -10,44 +10,42 @@ Não altere as listas recebidas e não use print dentro destas funções.
 
 # ============================================================ MISSÃO 1.1 — Funções puras
 def media(notas):
-    """Média aritmética da lista de notas, arredondada a 2 casas. Lista vazia: 0.0.
-
-    media([8, 6, 10]) -> 8.0
-    Dica: sum(...) e len(...) resolvem. Cuidado com a lista vazia!
-    """
-    raise NotImplementedError
+    return round(sum(notas) / len(notas), 2) if notas else 0.0
 
 
 def situacao(media_final):
-    """"aprovado" (média >= 7), "recuperacao" (>= 5 e < 7) ou "reprovado" (< 5)."""
-    raise NotImplementedError
+    if media_final >= 7:
+        return "aprovado"
+    elif media_final >= 5:
+        return "recuperacao"
+    else:
+        return "reprovado"
 
 
 # ============================================================ MISSÃO 1.2 — map: o boletim da turma
 def boletim(alunos):
-    """Recebe [{"nome": "Ana", "notas": [8, 9]}, ...] e devolve uma lista NOVA de
-    {"nome": ..., "media": ..., "situacao": ...}, na mesma ordem.
-
-    Dica: uma list comprehension (ou map) usando as funções da missão 1.1.
-    A lista original não pode ser alterada!
-    """
-    raise NotImplementedError
+    return [
+        {
+            "nome": a["nome"],
+            "media": media(a["notas"]),
+            "situacao": situacao(media(a["notas"])),
+        }
+        for a in alunos
+    ]
 
 
 # ============================================================ MISSÃO 1.3 — filter e reduce: aprovados e ranking
 def aprovados(boletins):
-    """Lista com os NOMES dos alunos aprovados, na ordem original. (filter)"""
-    raise NotImplementedError
+    return [b["nome"] for b in boletins if b["situacao"] == "aprovado"]
 
 
 def media_da_turma(boletins):
-    """Média das médias da turma, arredondada a 2 casas. Lista vazia: 0.0. (reduce ou sum)"""
-    raise NotImplementedError
+    if not boletins:
+        return 0.0
+    soma = sum(b["media"] for b in boletins)
+    return round(soma / len(boletins), 2)
 
 
 def ranking(boletins):
-    """Lista de nomes ordenada pela média, da maior para a menor. Empate: ordem alfabética.
-
-    Dica: sorted(..., key=lambda b: (-b["media"], b["nome"])) devolve uma lista NOVA.
-    """
-    raise NotImplementedError
+    ordenados = sorted(boletins, key=lambda b: (-b["media"], b["nome"]))
+    return [b["nome"] for b in ordenados]
