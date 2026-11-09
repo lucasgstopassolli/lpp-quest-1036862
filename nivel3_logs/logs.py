@@ -8,26 +8,39 @@ Uma linha de log tem o formato:  "METODO ROTA STATUS TEMPOms"   ex.: "GET /home 
 """
 
 
+from functools import reduce
+
+
 # ============================================================ MISSÃO 3.1 — Ler o log
 def parsear_linha(linha):
     """"GET /home 200 120ms" -> {"metodo": "GET", "rota": "/home", "status": 200, "ms": 120}
 
     Dica: linha.split() separa por espaços; int(...) converte; tire o "ms" do final do tempo.
     """
-    raise NotImplementedError
+    metodo, rota, status, tempo = linha.split()
+    return {
+        "metodo": metodo,
+        "rota": rota,
+        "status": int(status),
+        "ms": int(tempo.removesuffix("ms")),
+    }
 
 
 def parsear(linhas):
     """Lista NOVA de registros (dicionários) a partir das linhas de texto.
     Ignore linhas vazias e linhas de comentário (começam com "#"). Dica: comprehension com if.
     """
-    raise NotImplementedError
+    return [
+        parsear_linha(linha)
+        for linha in linhas
+        if linha.strip() and not linha.startswith("#")
+    ]
 
 
 # ============================================================ MISSÃO 3.2 — Filtrar e contar
 def erros(registros):
     """Só os registros com status >= 400. (filter)"""
-    raise NotImplementedError
+    return [r for r in registros if r["status"] >= 400]
 
 
 def contagem_por_rota(registros):
@@ -36,20 +49,28 @@ def contagem_por_rota(registros):
     Dica: reduce com um dicionário NOVO a cada passo:  {**acc, rota: acc.get(rota, 0) + 1}
     (nada de acc[rota] += 1, isso altera o dicionário!)
     """
-    raise NotImplementedError
+    return reduce(
+        lambda acc, r: {**acc, r["rota"]: acc.get(r["rota"], 0) + 1},
+        registros,
+        {},
+    )
 
 
 def rotas_mais_acessadas(registros, n):
     """Lista de [rota, quantidade] das n rotas mais acessadas, da maior para a menor.
     Empate: ordem alfabética da rota. Dica: sorted(..., key=lambda par: (-par[1], par[0])).
     """
-    raise NotImplementedError
+    contagem = contagem_por_rota(registros)
+    ordenadas = sorted(contagem.items(), key=lambda par: (-par[1], par[0]))
+    return [[rota, qtd] for rota, qtd in ordenadas[:n]]
 
 
 # ============================================================ MISSÃO 3.3 — O pipeline final
 def tempo_medio(registros):
     """Média do campo "ms", arredondada a 2 casas. Lista vazia: 0.0."""
-    raise NotImplementedError
+    if not registros:
+        return 0.0
+    return round(sum(r["ms"] for r in registros) / len(registros), 2)
 
 
 def pipe(*funcoes):
@@ -57,7 +78,7 @@ def pipe(*funcoes):
 
     Dica: reduce(lambda acc, f: f(acc), funcoes, x) dentro de uma função que recebe x.
     """
-    raise NotImplementedError
+    return lambda x: reduce(lambda acc, f: f(acc), funcoes, x)
 
 
 def relatorio(linhas):
@@ -68,4 +89,13 @@ def relatorio(linhas):
 
     Use as funções das missões anteriores. Sem laços e sem variáveis que mudam!
     """
-    raise NotImplementedError
+    registros = parsear(linhas)
+    total = len(registros)
+    qtd_erros = len(erros(registros))
+    return {
+        "total": total,
+        "erros": qtd_erros,
+        "taxa_erro": round(qtd_erros / total, 2) if total else 0.0,
+        "tempo_medio": tempo_medio(registros),
+        "top_rotas": rotas_mais_acessadas(registros, 3),
+    }
